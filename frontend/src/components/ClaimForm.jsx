@@ -10,13 +10,12 @@ const ClaimForm = ({ onClaim }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Fetch users on mount
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const res = await axios.get(`${API}/api/users`);
         setUsers(res.data);
-      } catch (err) {
+      } catch {
         setError('❌ Failed to fetch users.');
       } finally {
         setLoading(false);
@@ -25,7 +24,6 @@ const ClaimForm = ({ onClaim }) => {
     fetchUsers();
   }, []);
 
-  // Add a new user
   const handleAddUser = async () => {
     if (!name.trim()) return;
     try {
@@ -38,15 +36,14 @@ const ClaimForm = ({ onClaim }) => {
     }
   };
 
-  // Claim random points
   const handleClaim = async () => {
     if (!selectedId) return;
     try {
       const res = await axios.post(`${API}/claim`, { userId: selectedId });
-      onClaim(); // Refresh leaderboard/history
+      onClaim(); // notify parent
       alert(`✅ Claimed ${res.data.points} points!`);
       setError('');
-    } catch (err) {
+    } catch {
       setError('❌ Failed to claim points.');
     }
   };
@@ -68,11 +65,12 @@ const ClaimForm = ({ onClaim }) => {
           value={selectedId}
         >
           <option value="">Select User</option>
-          {users.map((u) => (
-            <option key={u._id} value={u._id}>
-              {u.name}
-            </option>
-          ))}
+          {Array.isArray(users) &&
+            users.map((u) => (
+              <option key={u._id} value={u._id}>
+                {u.name}
+              </option>
+            ))}
         </select>
       )}
 
