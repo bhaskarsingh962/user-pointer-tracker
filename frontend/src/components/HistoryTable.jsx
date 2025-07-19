@@ -1,25 +1,37 @@
-import React from "react";
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 
-const HistoryTable = ({ history }) => {
-  const safeHistory = Array.isArray(history) ? history : [];
+const HistoryTable = () => {
+  const [history, setHistory] = useState([]);
+
+  const fetchHistory = async () => {
+    const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/claim/history`);
+    setHistory(res.data);
+  };
+
+  useEffect(() => {
+    fetchHistory();
+    const interval = setInterval(fetchHistory, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <div className="overflow-x-auto mt-6">
-      <h3 className="text-lg font-semibold mb-2">📝 Claim History</h3>
-      <table className="min-w-full border border-gray-300">
-        <thead className="bg-gray-200">
-          <tr>
-            <th className="px-4 py-2 text-left">User</th>
-            <th className="px-4 py-2 text-left">Points</th>
-            <th className="px-4 py-2 text-left">Date</th>
+    <div className="p-4 bg-white rounded-xl shadow-md">
+      <h2 className="text-xl font-semibold mb-2">🕒 Claim History</h2>
+      <table className="w-full text-left border">
+        <thead>
+          <tr className="bg-gray-100">
+            <th className="p-2">User</th>
+            <th className="p-2">Points</th>
+            <th className="p-2">Time</th>
           </tr>
         </thead>
         <tbody>
-          {safeHistory.map((entry, index) => (
-            <tr key={index} className="border-t border-gray-300">
-              <td className="px-4 py-2">{entry.user?.name || "Unknown"}</td>
-              <td className="px-4 py-2">{entry.points}</td>
-              <td className="px-4 py-2">{new Date(entry.createdAt).toLocaleString()}</td>
+          {history.map((h, i) => (
+            <tr key={i} className="border-t">
+              <td className="p-2">{h.userId.name}</td>
+              <td className="p-2">{h.points}</td>
+              <td className="p-2">{new Date(h.timestamp).toLocaleString()}</td>
             </tr>
           ))}
         </tbody>
