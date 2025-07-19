@@ -1,53 +1,56 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 
 const Leaderboard = () => {
   const [users, setUsers] = useState([]);
 
-  useEffect(() => {
-    const fetchLeaderboard = async () => {
-      try {
-        const res = await axios.get("/api/leaderboard");
-        const sortedUsers = res.data.sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
-        setUsers(sortedUsers);
-      } catch (err) {
-        console.error("Error fetching leaderboard:", err);
-      }
-    };
+  const fetchLeaderboard = async () => {
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/users/leaderboard`);
+      const validUsers = (res.data || [])
+        .filter((u) => u && u.name && u.totalPoints !== undefined)
+        .sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
+      setUsers(validUsers);
+    } catch (error) {
+      console.error('Error fetching leaderboard:', error);
+    }
+  };
 
+  useEffect(() => {
     fetchLeaderboard();
+    const interval = setInterval(fetchLeaderboard, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      <h2 className="text-2xl font-bold mb-4 text-center">🏆 Leaderboard</h2>
-      <div className="bg-white shadow rounded-lg overflow-hidden">
-        <table className="min-w-full table-auto">
-          <thead className="bg-gray-200">
+    <div className="p-4 bg-white rounded-xl shadow-md mb-6">
+      <h2 className="text-xl font-semibold mb-2">🏆 Leaderboard</h2>
+      <table className="w-full text-left border">
+        <thead>
+          <tr className="bg-gray-100">
+            <th className="p-2">Rank</th>
+            <th className="p-2">Name</th>
+            <th className="p-2">Points</th>
+          </tr>
+        </thead>
+        <tbody>
+          {users.length === 0 ? (
             <tr>
-              <th className="px-4 py-2 text-left">Rank</th>
-              <th className="px-4 py-2 text-left">Name</th>
-              <th className="px-4 py-2 text-left">Total Points</th>
+              <td className="p-2 text-center" colSpan="3">
+                No data available
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {users.map((user, index) => (
-              <tr key={user._id} className="border-t hover:bg-gray-50">
-                <td className="px-4 py-2 font-semibold">#{index + 1}</td>
-                <td className="px-4 py-2">{user.name}</td>
-                <td className="px-4 py-2">{user.totalPoints || 0}</td>
+          ) : (
+            users.map((u, i) => (
+              <tr key={u._id || i} className="border-t">
+                <td className="p-2">#{i + 1}</td>
+                <td className="p-2">{u.name}</td>
+                <td className="p-2">{u.totalPoints}</td>
               </tr>
-            ))}
-            {users.length === 0 && (
-              <tr>
-                <td colSpan="3" className="px-4 py-4 text-center text-gray-500">
-                  No users found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            ))
+          )}
+        </tbody>
+      </table>
     </div>
   );
 };
