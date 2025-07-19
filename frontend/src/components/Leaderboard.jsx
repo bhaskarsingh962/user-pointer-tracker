@@ -5,13 +5,19 @@ const Leaderboard = () => {
   const [users, setUsers] = useState([]);
 
   const fetchLeaderboard = async () => {
-    const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/users/leaderboard`);
-    setUsers(res.data);
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/users/leaderboard`);
+      // Filter out any null/invalid entries
+      const validUsers = (res.data || []).filter((u) => u && u.name && u.totalPoints !== undefined);
+      setUsers(validUsers);
+    } catch (error) {
+      console.error('Error fetching leaderboard:', error);
+    }
   };
 
   useEffect(() => {
     fetchLeaderboard();
-    const interval = setInterval(fetchLeaderboard, 5000); // auto-refresh
+    const interval = setInterval(fetchLeaderboard, 5000); // auto-refresh every 5 seconds
     return () => clearInterval(interval);
   }, []);
 
@@ -27,13 +33,19 @@ const Leaderboard = () => {
           </tr>
         </thead>
         <tbody>
-          {users.map((u, i) => (
-            <tr key={i} className="border-t">
-              <td className="p-2">{u.rank}</td>
-              <td className="p-2">{u.name}</td>
-              <td className="p-2">{u.totalPoints}</td>
+          {users.length === 0 ? (
+            <tr>
+              <td className="p-2 text-center" colSpan="3">No data available</td>
             </tr>
-          ))}
+          ) : (
+            users.map((u, i) => (
+              <tr key={u._id || i} className="border-t">
+                <td className="p-2">{u.rank ?? i + 1}</td>
+                <td className="p-2">{u.name}</td>
+                <td className="p-2">{u.totalPoints}</td>
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
     </div>
