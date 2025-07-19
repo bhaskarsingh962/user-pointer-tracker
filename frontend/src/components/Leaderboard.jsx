@@ -86,27 +86,21 @@ const Leaderboard = () => {
               <th className="p-2 border">Points</th>
             </tr>
           </thead>
-          <tbody>
-            {users.length === 0 ? (
-              <tr>
-                <td colSpan="3" className="text-center p-4">
-                  No data available.
-                </td>
-              </tr>
-            ) : (
-              users.map((u, i) => {
-                if (!u || !u.name || u.totalPoints === undefined) return null;
-
-                return (
-                  <tr key={u._id || i} className="text-center border-t">
-                    <td className="p-2 border">{u.rank ?? i + 1}</td>
-                    <td className="p-2 border">{u.name}</td>
-                    <td className="p-2 border">{u.totalPoints}</td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
+         <tbody>
+  {i.map((c, d) => (
+    <tr className="border-t" key={d}>
+      <td className="p-2">
+        {c.userId?.name ?? 'Unknown'}
+      </td>
+      <td className="p-2">
+        {c.points ?? 0}
+      </td>
+      <td className="p-2">
+        {c.timestamp ? new Date(c.timestamp).toLocaleString() : 'N/A'}
+      </td>
+    </tr>
+  ))}
+</tbody>
         </table>
       </div>
     </div>
