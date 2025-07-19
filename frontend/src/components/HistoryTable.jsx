@@ -1,37 +1,32 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
+import React from "react";
 
-const HistoryTable = () => {
-  const [history, setHistory] = useState([]);
-
-  const fetchHistory = async () => {
-    const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/claim/history`);
-    setHistory(res.data);
-  };
-
-  useEffect(() => {
-    fetchHistory();
-    const interval = setInterval(fetchHistory, 5000);
-    return () => clearInterval(interval);
-  }, []);
+const HistoryTable = ({ history }) => {
+  if (!Array.isArray(history)) {
+    return <div>No history data available.</div>;
+  }
 
   return (
-    <div className="p-4 bg-white rounded-xl shadow-md">
-      <h2 className="text-xl font-semibold mb-2">🕒 Claim History</h2>
-      <table className="w-full text-left border">
-        <thead>
-          <tr className="bg-gray-100">
+    <div className="mt-6 border rounded-xl overflow-x-auto">
+      <table className="min-w-full text-sm text-left">
+        <thead className="bg-gray-100">
+          <tr>
             <th className="p-2">User</th>
             <th className="p-2">Points</th>
-            <th className="p-2">Time</th>
+            <th className="p-2">Timestamp</th>
           </tr>
         </thead>
         <tbody>
-          {history.map((h, i) => (
-            <tr key={i} className="border-t">
-              <td className="p-2">{h.userId.name}</td>
-              <td className="p-2">{h.points}</td>
-              <td className="p-2">{new Date(h.timestamp).toLocaleString()}</td>
+          {history.map((entry, index) => (
+            <tr key={index} className="border-t">
+              <td className="p-2">
+                {entry?.userId?.name || "Unknown"}
+              </td>
+              <td className="p-2">
+                {entry?.points ?? "N/A"}
+              </td>
+              <td className="p-2">
+                {entry?.timestamp ? new Date(entry.timestamp).toLocaleString() : "No time"}
+              </td>
             </tr>
           ))}
         </tbody>
