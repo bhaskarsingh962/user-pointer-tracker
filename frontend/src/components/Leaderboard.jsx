@@ -88,7 +88,7 @@ const Leaderboard = () => {
             </tr>
           </thead>
          <tbody>
-  {i.map((c, d) => (
+  {Array.isArray(i) && i.map((c, d) => (
     <tr className="border-t" key={d}>
       <td className="p-2">
         {c?.userId?.name || "Unknown"}
