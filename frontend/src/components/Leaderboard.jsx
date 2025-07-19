@@ -87,17 +87,21 @@ const Leaderboard = () => {
               <th className="p-2 border">Points</th>
             </tr>
           </thead>
-          <tbody>
-            {[...users]
-              .sort((a, b) => b.totalPoints - a.totalPoints)
-              .map((user, index) => (
-                <tr key={user._id} className="border-t">
-                  <td className="p-2 border">{index + 1}</td>
-                  <td className="p-2 border">{user.name}</td>
-                  <td className="p-2 border">{user.totalPoints}</td>
-                </tr>
-              ))}
-          </tbody>
+         <tbody>
+  {i.map((c, d) => (
+    <tr className="border-t" key={d}>
+      <td className="p-2">
+        {c?.userId?.name || "Unknown"}
+      </td>
+      <td className="p-2">
+        {c?.points ?? "N/A"}
+      </td>
+      <td className="p-2">
+        {c?.timestamp ? new Date(c.timestamp).toLocaleString() : "No time"}
+      </td>
+    </tr>
+  ))}
+</tbody>
         </table>
       </div>
 
