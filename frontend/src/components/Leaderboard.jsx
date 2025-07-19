@@ -8,7 +8,9 @@ const Leaderboard = () => {
     try {
       const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/users/leaderboard`);
       // Filter out any null/invalid entries
-      const validUsers = (res.data || []).filter((u) => u && u.name && u.totalPoints !== undefined);
+      const validUsers = (res.data || []).filter(
+        (u) => u && u.name && u.totalPoints !== undefined
+      );
       setUsers(validUsers);
     } catch (error) {
       console.error('Error fetching leaderboard:', error);
@@ -38,13 +40,15 @@ const Leaderboard = () => {
               <td className="p-2 text-center" colSpan="3">No data available</td>
             </tr>
           ) : (
-            users.map((u, i) => (
-              <tr key={u._id || i} className="border-t">
-                <td className="p-2">{u.rank ?? i + 1}</td>
-                <td className="p-2">{u.name}</td>
-                <td className="p-2">{u.totalPoints}</td>
-              </tr>
-            ))
+            users
+              .filter((u) => u && u.name && u.totalPoints !== undefined)
+              .map((u, i) => (
+                <tr key={u._id || i} className="border-t">
+                  <td className="p-2">{u.rank ?? i + 1}</td>
+                  <td className="p-2">{u.name}</td>
+                  <td className="p-2">{u.totalPoints}</td>
+                </tr>
+              ))
           )}
         </tbody>
       </table>
