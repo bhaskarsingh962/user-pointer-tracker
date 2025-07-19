@@ -27,7 +27,7 @@ const ClaimForm = ({ onClaim }) => {
   const handleAddUser = async () => {
     if (!name.trim()) return;
     try {
-      const res = await axios.post(`${API}/users`, { name });
+      const res = await axios.post(`${API}/api/users`, { name });
       setUsers((prev) => [...prev, res.data]);
       setName('');
       setError('');
@@ -39,7 +39,7 @@ const ClaimForm = ({ onClaim }) => {
   const handleClaim = async () => {
     if (!selectedId) return;
     try {
-      const res = await axios.post(`${API}/claim`, { userId: selectedId });
+      const res = await axios.post(`${API}/api/claim`, { userId: selectedId });
       onClaim(); // notify parent
       alert(`✅ Claimed ${res.data.points} points!`);
       setError('');
