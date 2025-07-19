@@ -1,105 +1,104 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import HistoryTable from "./HistoryTable";
 
-const API = import.meta.env.VITE_BACKEND_URL;
-
-const ClaimForm = ({ onClaim }) => {
+const ClaimForm = () => {
   const [users, setUsers] = useState([]);
-  const [name, setName] = useState('');
-  const [selectedId, setSelectedId] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [userId, setUserId] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [history, setHistory] = useState([]);
 
-  // Fetch users on mount
+  // Fetch all users and their history on mount
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const res = await axios.get(`${API}/api/users`);
-        setUsers(res.data);
+        const res = await axios.get("/api/leaderboard");
+        setUsers(res.data || []);
       } catch (err) {
-        setError('❌ Failed to fetch users.');
-      } finally {
-        setLoading(false);
+        console.error("Error fetching users:", err);
       }
     };
+
+    const fetchHistory = async () => {
+      try {
+        const res = await axios.get("/api/history");
+        setHistory(res.data || []);
+      } catch (err) {
+        console.error("Error fetching history:", err);
+      }
+    };
+
     fetchUsers();
+    fetchHistory();
   }, []);
 
-  // Add a new user
-  const handleAddUser = async () => {
-    if (!name.trim()) return;
-    try {
-      const res = await axios.post(`${API}/users`, { name });
-      setUsers((prev) => [...prev, res.data]);
-      setName('');
-      setError('');
-    } catch (err) {
-      setError(err.response?.data?.message || 'Error adding user.');
-    }
-  };
-
-  // Claim random points
   const handleClaim = async () => {
-    if (!selectedId) return;
+    if (!userId) {
+      alert("Please select a user.");
+      return;
+    }
+
     try {
-      const res = await axios.post(`${API}/claim`, { userId: selectedId });
-      onClaim(); // Refresh leaderboard/history
-      alert(`✅ Claimed ${res.data.points} points!`);
-      setError('');
+      setLoading(true);
+      const res = await axios.post("/api/claim", { userId });
+      alert(res.data.message || "Points claimed!");
+
+      // Refresh history after claim
+      const historyRes = await axios.get("/api/history");
+      setHistory(historyRes.data || []);
     } catch (err) {
-      setError('❌ Failed to claim points.');
+      console.error("Error claiming points:", err);
+      alert("Something went wrong!");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="p-4 bg-white rounded-xl shadow-md mb-6 space-y-4">
-      <h2 className="text-xl font-semibold">🎯 Claim Points</h2>
+    <div className="max-w-2xl mx-auto px-4 py-8">
+      <h2 className="text-xl font-bold mb-4">🎯 Claim Points</h2>
 
-      {error && <div className="bg-red-100 text-red-700 p-2 rounded">{error}</div>}
-
-      {loading ? (
-        <p>Loading users...</p>
-      ) : users.length === 0 ? (
-        <div className="text-gray-600">No users found. Please add a user below to begin.</div>
-      ) : (
+      <div className="flex flex-col sm:flex-row gap-4 items-center">
         <select
-          className="w-full p-2 border rounded"
-          onChange={(e) => setSelectedId(e.target.value)}
-          value={selectedId}
+          className="border p-2 rounded w-full sm:w-auto"
+          value={userId}
+          onChange={(e) => setUserId(e.target.value)}
         >
-          <option value="">Select User</option>
-          {users.map((u) => (
-            <option key={u._id} value={u._id}>
-              {u.name}
+          <option value="">-- Select User --</option>
+          {users.map((user) => (
+            <option key={user._id} value={user._id}>
+              {user.name}
             </option>
           ))}
         </select>
-      )}
 
-      <div className="flex flex-col sm:flex-row gap-2">
         <button
-          className={`px-4 py-2 rounded text-white transition ${
-            selectedId ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'
-          }`}
           onClick={handleClaim}
-          disabled={!selectedId}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+          disabled={loading}
         >
-          Claim
+          {loading ? "Claiming..." : "Claim Points"}
         </button>
+      </div>
 
-        <input
-          type="text"
-          placeholder="Add new user"
-          className="border p-2 rounded w-full"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <button
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-          onClick={handleAddUser}
-        >
-          Add
-        </button>
+      {/* Leaderboard */}
+      <div className="mt-8">
+        <h3 className="text-lg font-semibold mb-2">🏆 Leaderboard</h3>
+        <ul className="space-y-1 list-disc list-inside">
+          {users
+            .sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0))
+            .map((user, index) => (
+              <li key={user._id}>
+                #{index + 1} - {user.name} ({user.totalPoints || 0} pts)
+              </li>
+            ))}
+        </ul>
+      </div>
+
+      {/* History Table */}
+      <div className="mt-8">
+        <h3 className="text-lg font-semibold mb-2">📜 History</h3>
+        <HistoryTable history={history} />
       </div>
     </div>
   );
